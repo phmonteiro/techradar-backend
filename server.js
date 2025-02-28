@@ -8,6 +8,12 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
+// Start the Express server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 
 // Database configuration for Azure SQL Server
 const dbConfig = {
@@ -36,6 +42,10 @@ async function connectToDatabase() {
         console.error('Database connection failed: ', err);
     }
 }
+
+app.get("/", (req, res) => {
+  res.send("Hello, Azure!");
+});
 
 app.get('/api/Technologies', async (req, res) => {
   try {
@@ -182,8 +192,3 @@ app.post('/api/updateClauseTextOld', async (req, res) => {
   }
 });
 
-// Start the Express server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
