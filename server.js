@@ -26,7 +26,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Your frontend URL
+  origin: process.env.FRONTEND_URL || 'https://yellow-ground-0b93aea03.1.azurestaticapps.net', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
