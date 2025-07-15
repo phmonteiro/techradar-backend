@@ -12,7 +12,7 @@ import { commentsRoutes } from './src/routes/comments.routes.js';
 import { referencesRoutes } from './src/routes/references.routes.js';
 import { likesRoutes } from './src/routes/likes.routes.js';
 import { errorHandler } from './src/middleware/error.middleware.js';
-import { getTechnologyRadarConfig } from './src/controllers/radarconfig.controller.js';
+import { getTechnologyRadarConfig } from './src/controllers/radagit comrconfig.controller.js';
 import { getTrendRadarConfig } from './src/controllers/radarconfig.controller.js';
 import { sendEmail } from './src/services/email.service.js';
 import { verifyToken } from './src/middleware/auth.middleware.js';
@@ -26,7 +26,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'https://yellow-ground-0b93aea03.1.azurestaticapps.net', // Your frontend URL
+  origin: 'https://yellow-ground-0b93aea03.1.azurestaticapps.net', // Your frontend URL process.env.FRONTEND_URL || 
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
