@@ -12,7 +12,7 @@ import { commentsRoutes } from './src/routes/comments.routes.js';
 import { referencesRoutes } from './src/routes/references.routes.js';
 import { likesRoutes } from './src/routes/likes.routes.js';
 import { errorHandler } from './src/middleware/error.middleware.js';
-import { getTechnologyRadarConfig } from './src/controllers/radagit comrconfig.controller.js';
+import { getTechnologyRadarConfig } from './src/controllers/radarconfig.controller.js';
 import { getTrendRadarConfig } from './src/controllers/radarconfig.controller.js';
 import { sendEmail } from './src/services/email.service.js';
 import { verifyToken } from './src/middleware/auth.middleware.js';
