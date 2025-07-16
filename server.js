@@ -19,14 +19,18 @@ import { verifyToken } from './src/middleware/auth.middleware.js';
 import { sendAdminNotification } from './src/services/email.service.js';
 
 // Load environment variables
-dotenv.config();
+if (process.env.NODE_ENV === 'development') {
+  dotenv.config({ path: '.env.development' });
+} else {
+  dotenv.config();
+}
 
 // Initialize express app
 const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: 'https://yellow-ground-0b93aea03.1.azurestaticapps.net', // Your frontend URL process.env.FRONTEND_URL || 
+  origin: process.env.FRONTEND_URL,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
