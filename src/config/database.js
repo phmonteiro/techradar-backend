@@ -9,13 +9,15 @@ const dbConfig = {
   password: process.env.DB_PASSWORD || ':.9Qpc:4KuH6VfH',
   server: process.env.DB_SERVER || 'pettracker.database.windows.net',
   port: parseInt(process.env.DB_PORT) || 1433,
-  database: process.env.DB_NAME || 'techradar',
+  database: process.env.DB_NAME || 'techradarDEV', // Default to dev DB if not set
   options: {
     keepAlive: true,
     encrypt: true,
     enableArithAbort: true
   }
 };
+
+console.log(`Using database: ${dbConfig.database}`);
 
 // Global SQL connection pool
 let poolPromise;

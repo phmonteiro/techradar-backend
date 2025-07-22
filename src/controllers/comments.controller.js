@@ -9,12 +9,7 @@ import {
 export const getCommentsByTypeHandler = async (req, res) => {
   try {
     const { type, label } = req.params;
-    console.log("getCommentsByTypeHandler");
-    console.log(type);
-    console.log(label);
     const comments = await getCommentsByType(type, label);
-    console.log("comments");
-    console.log(comments);
     res.status(200).json({
       success: true,
       count: comments.length,

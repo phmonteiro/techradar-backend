@@ -19,9 +19,13 @@ import { verifyToken } from './src/middleware/auth.middleware.js';
 import { sendAdminNotification } from './src/services/email.service.js';
 
 // Load environment variables
+// In development, load from .env.development file
+// In production (Azure), environment variables are set via the Azure portal
 if (process.env.NODE_ENV === 'development') {
   dotenv.config({ path: '.env.development' });
 } else {
+  // In production, Azure will provide environment variables directly
+  // dotenv.config() will only load from .env if it exists, but is not required
   dotenv.config();
 }
 
@@ -30,7 +34,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

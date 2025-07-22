@@ -34,14 +34,14 @@ export const getReferencesByTechnologyHandler = async (req, res) => {
 
     const { label } = req.params;
     const references = await getReferencesByTechnology(label);
-    if (!references || references.length === 0) {
+    if (!references ) {
       return res.status(404).json({
         success: false,
-        message: 'No references found for this technology'
+        message: 'No response returned from getReferencesByTechnology'
       });
     }
     res.status(200).json({
-      success: true,
+      success: references.length == 0 ? false : true,
       count: references.length,
       data: references
     });
