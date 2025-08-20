@@ -664,6 +664,30 @@ export const getAllReferencesAdmin = async (req, res) => {
   }
 };
 
+export const getReferenceByIdAdmin = async (req, res) => {
+  try {
+    const reference = await getReferenceById(req.params.id);
+    if (!reference) {
+      return res.status(404).json({
+        success: false,
+        message: 'Reference not found'
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data: reference
+    });
+  }
+  catch (error) {
+    console.error('Error fetching reference by ID:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
+};
+
 export const createReferenceAdmin = async (req, res) => {
   try {
     const reference = await createReference({

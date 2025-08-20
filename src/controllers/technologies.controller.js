@@ -18,15 +18,10 @@ import {
 export const getAllTechnologiesHandler = async (req, res) => {
   try {
     const technologies = await getAllTechnologies();
-    if (!technologies || technologies.length === 0) { 
-      return res.status(404).json({
-        success: false,
-        message: 'No technologies found'
-      })}
     res.status(200).json({
       success: true,
-      count: technologies.length,
-      data: technologies
+      count: technologies ? technologies.length : 0,
+      data: technologies || []
     });
   } catch (error) {
     res.status(500).json({

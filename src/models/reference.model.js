@@ -30,7 +30,7 @@ async function getReferenceById(id) {
     const pool = await getDb();
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM [techradar].dbo.[References] WHERE Id = @id');
+      .query('SELECT * FROM [References] WHERE Id = @id');
     
     return result.recordset[0];
   } catch (err) {
@@ -188,13 +188,13 @@ async function updateReference(id, referenceData) {
       .input('id', sql.Int, id)
       .input('title', sql.NVarChar, referenceData.Title)
       .input('url', sql.NVarChar, referenceData.Url)
-      .input('description', sql.NVarChar, referenceData.Description || null)
+      .input('source', sql.NVarChar, referenceData.Source || null)
       .input('type', sql.NVarChar, referenceData.Type || 'Link')
       .query(`
-        UPDATE References SET
+        UPDATE [References] SET
           Title = @title,
           Url = @url,
-          Description = @description,
+          Source = @source,
           Type = @type
         OUTPUT INSERTED.*
         WHERE Id = @id

@@ -17,6 +17,7 @@ import {
   rejectCommentAdmin,
   deleteCommentAdmin,
   getAllReferencesAdmin,
+  getReferenceByIdAdmin,
   createReferenceAdmin,
   updateReferenceAdmin,
   deleteReferenceAdmin,
@@ -35,6 +36,7 @@ import {
   deleteTrendHandler
 } from '../controllers/trends.controller.js';
 import { sendAdminNotification, sendEmail } from '../services/email.service.js';
+import { getReferenceById } from '../models/reference.model.js';
 
 const router = express.Router();
 
@@ -71,8 +73,10 @@ router.delete('/comments/:label', deleteCommentAdmin);
 
 // Reference management
 router.get('/references', getAllReferencesAdmin);
-router.post('/references', createReferenceAdmin);
-router.put('/references/:label', updateReferenceAdmin);
+router.get('/references/:id', getReferenceByIdAdmin);
+router.post('/references/add/:type/:label', createReferenceAdmin);
+router.post('/references/add', createReferenceAdmin);   
+router.put('/references/:id', updateReferenceAdmin);
 router.delete('/references/:id', deleteReferenceAdmin);
 
 // User management (super admin only)

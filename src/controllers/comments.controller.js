@@ -99,11 +99,15 @@ export const createCommentHandler = async (req, res) => {
   try {
     const commentData = {
       text: req.body.text,
-      technologyLabel: req.body.technologyLabel,
+      type: req.body.type,
+      label: req.body.label,
       author: req.user?.displayName || 'Anonymous'  // Fallback if displayName is undefined
     };
 
-    if (!commentData || !commentData.text || !commentData.technologyLabel) {
+    console.log("commentData");
+    console.log(commentData);
+
+    if (!commentData || !commentData.text || !commentData.type || !commentData.label) {
       res.status(400).json({
         success: false,
         message: 'Invalid comment data'

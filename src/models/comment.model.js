@@ -14,15 +14,10 @@ async function getAllComments() {
 async function getCommentsByType(type, label) {
   try {
     const pool = await getDb();
-    console.log("getCommentsByType");
-    console.log(type);
-    console.log(label);
     const result = await pool.request()
       .input('type', sql.NVarChar, type)
       .input('label', sql.NVarChar, label)
       .query('SELECT * FROM Comments WHERE Type = @type AND Label = @label');
-    console.log("result");
-    console.log(result);
     return result.recordset;
   } catch (err) {
     console.error('Database query failed:', err);
@@ -145,17 +140,18 @@ async function createComment(commentData) {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('technologyLabel', sql.NVarChar, commentData.technologyLabel)
+      .input('label', sql.NVarChar, commentData.label)
+      .input('type', sql.NVarChar, commentData.type)
       .input('author', sql.NVarChar, commentData.author)
       .input('text', sql.NVarChar, commentData.text)	
       .input('createdAt', sql.DateTime, new Date())
       .query(`
         INSERT INTO Comments (
-          TechnologyLabel, Text, Author, CreatedAt
+          Label, Type, Text, Author, CreatedAt
         )
         OUTPUT INSERTED.*
         VALUES (
-          @technologyLabel, @text, @author, @createdAt
+          @label, @type, @text, @author, @createdAt
         )
       `);
     

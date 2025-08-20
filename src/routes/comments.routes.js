@@ -26,6 +26,6 @@ router.get('/trend/:label', getCommentsByTrendHandler);
 
 
 
-router.post('/technology/:label', createCommentHandler);
+router.post('/:type/:label', createCommentHandler);
 
 export { router as commentsRoutes };

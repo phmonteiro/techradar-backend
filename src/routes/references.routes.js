@@ -30,11 +30,26 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST a new reference
+router.put('/label/:label', verifyToken, async (req, res, next) => {
+  try {
+    const referenceData = req.body;
+    console.log("Creating reference:", referenceData);
+    // This is a placeholder for actual controller logic
+
+    res.status(201).json({ message: 'Reference created successfully', data: createdReference });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST a new reference
 router.post('/', verifyToken, async (req, res, next) => {
   try {
     const referenceData = req.body;
+    console.log("Creating reference:", referenceData);
     // This is a placeholder for actual controller logic
-    res.status(201).json({ message: 'Reference created successfully', data: referenceData });
+
+    res.status(201).json({ message: 'Reference created successfully', data: createdReference });
   } catch (error) {
     next(error);
   }
