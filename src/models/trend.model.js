@@ -199,6 +199,7 @@ async function createTrend(trendData) {
       throw error;
     }
 
+    console.log("Creating trend:", trendData);
     const result = await pool.request()
       .input('label', sql.NVarChar, trendData.Label)
       .input('name', sql.NVarChar, trendData.Name)
@@ -228,7 +229,8 @@ async function createTrend(trendData) {
           @recommendedAction, @contentSource, @lastChangeDate, @imageUrl, @ring, @quadrant, @link
           )
       `);
-    
+
+      console.log("Trend created successfully:", result.recordset[0]);
     return result.recordset[0];
   } catch (err) {
     console.error('Database query failed:', err);

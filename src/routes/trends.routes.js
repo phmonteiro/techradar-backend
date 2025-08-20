@@ -20,10 +20,21 @@ import { verifyToken } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
+// Debug middleware to log all trend route hits
+router.use((req, res, next) => {
+    console.log(`🔍 [TRENDS ROUTE] ${new Date().toISOString()} - ${req.method} ${req.path}`);
+    console.log(`🔍 [TRENDS ROUTE] Request params:`, req.params);
+    console.log(`🔍 [TRENDS ROUTE] Request query:`, req.query);
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+        console.log(`🔍 [TRENDS ROUTE] Request body:`, req.body);
+    }
+    next();
+});
+
 // Get all trends
 router.get('/', getAllTrendsHandler);
 
-// Apply the verifyAdminToken middleware for all admin routes below this line
+// Apply the verifyToken middleware for all admin routes below this line
 router.use(verifyToken);
 
 // Get trends count
