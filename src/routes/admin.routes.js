@@ -67,9 +67,9 @@ router.delete('/trends/:label', deleteTrendHandler);
 // Comment management
 router.get('/comments', getAllCommentsAdmin);
 router.post('/comments', createCommentAdmin);
-router.put('/comments/:label/approve', approveCommentAdmin);
-router.put('/comments/:label/reject', rejectCommentAdmin);
-router.delete('/comments/:label', deleteCommentAdmin);
+router.put('/comments/:id/approve', approveCommentAdmin);
+router.put('/comments/:id/reject', rejectCommentAdmin);
+router.delete('/comments/:id', deleteCommentAdmin);
 
 // Reference management
 router.get('/references', getAllReferencesAdmin);
