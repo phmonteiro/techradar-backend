@@ -11,27 +11,77 @@ async function getAllComments() {
     throw err;
   }
 }
-async function getCommentsByType(type, label) {
+async function getCommentsByType(type, label, page = 1, limit = 10) {
   try {
     const pool = await getDb();
+    const offset = (page - 1) * limit;
+    
     const result = await pool.request()
       .input('type', sql.NVarChar, type)
       .input('label', sql.NVarChar, label)
-      .query('SELECT * FROM Comments WHERE Type = @type AND Label = @label');
-    return result.recordset;
+      .input('offset', sql.Int, offset)
+      .input('limit', sql.Int, parseInt(limit))
+      .query(`
+        SELECT * FROM Comments 
+        WHERE Type = @type AND Label = @label 
+        ORDER BY CreatedAt DESC
+        OFFSET @offset ROWS
+        FETCH NEXT @limit ROWS ONLY;
+        
+        SELECT COUNT(*) as total FROM Comments 
+        WHERE Type = @type AND Label = @label;
+      `);
+    
+    return {
+      comments: result.recordsets[0],
+      total: result.recordsets[1][0].total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(result.recordsets[1][0].total / limit)
+    };
   } catch (err) {
     console.error('Database query failed:', err);
     throw err;
   }
 }
 
-async function getCommentsByTrend(label) {
+async function getCommentsByTrend(label, page = 1, limit = 10) {
   try {
     const pool = await getDb();
+    const offset = (page - 1) * limit;
+    
     const result = await pool.request()
       .input('label', sql.NVarChar, label)
-      .query('SELECT * FROM Comments WHERE Label = @label');
-    return result.recordset;
+      .input('offset', sql.Int, offset)
+      .input('limit', sql.Int, parseInt(limit))
+      .query(`
+        SELECT * FROM Comments 
+        WHERE Label = @label 
+        ORDER BY CreatedAt DESC
+        OFFSET @offset ROWS
+        FETCH NEXT @limit ROWS ONLY;
+        
+        SELECT COUNT(*) as total FROM Comments 
+        WHERE Label = @label;
+      `);
+    
+    if (!result.recordsets[0] || result.recordsets[0].length === 0) {
+      return {
+        comments: [],
+        total: 0,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: 0
+      };
+    }
+
+    return {
+      comments: result.recordsets[0],
+      total: result.recordsets[1][0].total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(result.recordsets[1][0].total / limit)
+    };
   } catch (err) {
     console.error('Database query failed:', err);
     throw err;
@@ -52,18 +102,43 @@ async function getCommentById(id) {
   }
 }
 
-async function getCommentsByTechnology(label) {
-
+async function getCommentsByTechnology(label, page = 1, limit = 10) {
   try {
     const pool = await getDb();
+    const offset = (page - 1) * limit;
+    
     const result = await pool.request()
       .input('label', sql.NVarChar, label)
-      .query('SELECT * FROM Comments WHERE label = @label ORDER BY CreatedAt DESC');
-    if (!result.recordset || result.recordset.length === 0) {
-      return null;
+      .input('offset', sql.Int, offset)
+      .input('limit', sql.Int, parseInt(limit))
+      .query(`
+        SELECT * FROM Comments 
+        WHERE label = @label 
+        ORDER BY CreatedAt DESC
+        OFFSET @offset ROWS
+        FETCH NEXT @limit ROWS ONLY;
+        
+        SELECT COUNT(*) as total FROM Comments 
+        WHERE label = @label;
+      `);
+    
+    if (!result.recordsets[0] || result.recordsets[0].length === 0) {
+      return {
+        comments: [],
+        total: 0,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: 0
+      };
     }
 
-    return result.recordset;
+    return {
+      comments: result.recordsets[0],
+      total: result.recordsets[1][0].total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(result.recordsets[1][0].total / limit)
+    };
   } catch (err) {
     console.error('Database query failed:', err);
     throw err;

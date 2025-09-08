@@ -9,22 +9,36 @@ import {
 export const getCommentsByTypeHandler = async (req, res) => {
   try {
     const { type, label } = req.params;
-    const comments = await getCommentsByType(type, label);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const result = await getCommentsByType(type, label, page, limit);
+    
     res.status(200).json({
       success: true,
-      count: comments.length,
-      data: comments
+      data: result.comments,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to get comments by type' });
+    console.error('Error in getCommentsByTypeHandler:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to get comments by type' 
+    });
   }
 }
 
 export const getCommentsByTechnologyHandler = async (req, res) => {
   try {
     const { label } = req.params;
-    const comments = await getCommentsByTechnology(label);
-    if (!comments || comments.length === 0) {
+    const { page = 1, limit = 10 } = req.query;
+    
+    const result = await getCommentsByTechnology(label, page, limit);
+    
+    if (!result || result.comments.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'No comments found for this technology'
@@ -33,8 +47,7 @@ export const getCommentsByTechnologyHandler = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      count: comments.length,
-      data: comments
+      ...result
     });
   }
   catch (error) {
@@ -49,8 +62,11 @@ export const getCommentsByTechnologyHandler = async (req, res) => {
 export const getCommentsByTrendHandler = async (req, res) => {
   try {
     const { label } = req.params;
-    const comments = await getCommentsByTrend(label);
-    if (!comments || comments.length === 0) {
+    const { page = 1, limit = 10 } = req.query;
+    
+    const result = await getCommentsByTrend(label, page, limit);
+    
+    if (!result || result.comments.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'No comments found for this trend'
@@ -58,8 +74,7 @@ export const getCommentsByTrendHandler = async (req, res) => {
     }
     res.status(200).json({
       success: true,
-      count: comments.length,
-      data: comments
+      ...result
     });
   }
   catch (error) {
