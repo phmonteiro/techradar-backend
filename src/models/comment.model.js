@@ -145,37 +145,59 @@ async function getCommentsByTechnology(label, page = 1, limit = 10) {
   }
 }
 
-async function getCommentsPaginated(page = 1, limit = 10, TechnologyLabel = null) {
+async function getCommentsPaginated(page = 1, limit = 10, search = '') {
   try {
     const pool = await getDb();
     const offset = (page - 1) * limit;
     let result;
     
-    if (TechnologyLabel) {
+    if (search) {
       result = await pool.request()
-        .input('TechnologyLabel', sql.NVarChar, TechnologyLabel)
+        .input('search', sql.NVarChar, `%${search}%`)
         .input('offset', sql.Int, offset)
         .input('limit', sql.Int, parseInt(limit))
         .query(`
-          SELECT C.*, T.Name as TechnologyName 
+          SELECT C.*, 
+                 CASE 
+                   WHEN C.Type = 'technology' THEN T.Name
+                   WHEN C.Type = 'trend' THEN TR.Name
+                   ELSE C.Label
+                 END as ItemName,
+                 T.Name as TechnologyName
           FROM Comments C
-          JOIN Technologies T ON C.TechnologyLabel = T.Label
-          WHERE C.TechnologyLabel = @TechnologyLabel
+          LEFT JOIN Technologies T ON C.Label = T.Label AND (C.Type = 'technology' OR C.Type IS NULL)
+          LEFT JOIN Trends TR ON C.Label = TR.Label AND C.Type = 'trend'
+          WHERE C.Text LIKE @search 
+             OR C.Author LIKE @search
+             OR T.Name LIKE @search
+             OR TR.Name LIKE @search
           ORDER BY C.CreatedAt DESC
           OFFSET @offset ROWS
           FETCH NEXT @limit ROWS ONLY;
           
-          SELECT COUNT(*) as total FROM Comments 
-          WHERE TechnologyLabel = @technologyLabel;
+          SELECT COUNT(*) as total FROM Comments C
+          LEFT JOIN Technologies T ON C.Label = T.Label AND (C.Type = 'technology' OR C.Type IS NULL)
+          LEFT JOIN Trends TR ON C.Label = TR.Label AND C.Type = 'trend'
+          WHERE C.Text LIKE @search 
+             OR C.Author LIKE @search
+             OR T.Name LIKE @search
+             OR TR.Name LIKE @search;
         `);
     } else {
       result = await pool.request()
         .input('offset', sql.Int, offset)
         .input('limit', sql.Int, parseInt(limit))
         .query(`
-          SELECT C.*, T.Name as TechnologyName 
+          SELECT C.*, 
+                 CASE 
+                   WHEN C.Type = 'technology' THEN T.Name
+                   WHEN C.Type = 'trend' THEN TR.Name
+                   ELSE C.Label
+                 END as ItemName,
+                 T.Name as TechnologyName
           FROM Comments C
-          JOIN Technologies T ON C.TechnologyLabel = T.Label
+          LEFT JOIN Technologies T ON C.Label = T.Label AND (C.Type = 'technology' OR C.Type IS NULL)
+          LEFT JOIN Trends TR ON C.Label = TR.Label AND C.Type = 'trend'
           ORDER BY C.CreatedAt DESC
           OFFSET @offset ROWS
           FETCH NEXT @limit ROWS ONLY;
@@ -211,22 +233,23 @@ async function getCommentsCount() {
 }
 
 async function createComment(commentData) {
-
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('label', sql.NVarChar, commentData.label)
-      .input('type', sql.NVarChar, commentData.type)
-      .input('author', sql.NVarChar, commentData.author)
-      .input('text', sql.NVarChar, commentData.text)	
+      .input('label', sql.NVarChar, commentData.Label || commentData.label)
+      .input('type', sql.NVarChar, commentData.Type || commentData.type || 'technology')
+      .input('author', sql.NVarChar, commentData.Author || commentData.author)
+      .input('email', sql.NVarChar, commentData.Email || commentData.email)
+      .input('text', sql.NVarChar, commentData.Text || commentData.text)
+      .input('isApproved', sql.Bit, commentData.IsApproved || false)
       .input('createdAt', sql.DateTime, new Date())
       .query(`
         INSERT INTO Comments (
-          Label, Type, Text, Author, CreatedAt
+          Label, Type, Text, Author, Email, IsApproved, CreatedAt
         )
         OUTPUT INSERTED.*
         VALUES (
-          @label, @type, @text, @author, @createdAt
+          @label, @type, @text, @author, @email, @isApproved, @createdAt
         )
       `);
     
