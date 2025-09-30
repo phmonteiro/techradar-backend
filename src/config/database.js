@@ -6,7 +6,7 @@ dotenv.config();
 // Database configuration for Azure SQL Server
 const dbConfig = {
   user: process.env.DB_USER || 'sqlroot',
-  password: process.env.DB_PASSWORD || ':.9Qpc:4KuH6VfH',
+  password: process.env.DB_PASS || process.env.DB_PASSWORD || ':.9Qpc:4KuH6VfH',
   server: process.env.DB_SERVER || 'pettracker.database.windows.net',
   port: parseInt(process.env.DB_PORT) || 1433,
   database: process.env.DB_NAME || 'techradarDEV', // Default to dev DB if not set

@@ -1,7 +1,7 @@
 import sql from 'mssql';
 import { getDb } from '../config/database.js';
 
-async function getUserLikeStatusByTrendLabel(userId, label) {
+async function getUserLikeStatusByTrendGeneratedID(userId, generatedId) {
   try {
     if (!userId) {
       throw new Error('User ID is required');
@@ -11,12 +11,12 @@ async function getUserLikeStatusByTrendLabel(userId, label) {
     const pool = await getDb();
     const result = await pool.request()
       .input('UserId', sql.Int, userId)
-      .input('TrendLabel', sql.NVarChar, label)
+      .input('TrendGeneratedID', sql.NVarChar, generatedId)
       .query(`
         SELECT TOP 1 1 as liked
         FROM TrendLikes 
         WHERE UserId = @userId 
-        AND TrendLabel = @trendLabel
+        AND TrendGeneratedID = @trendGeneratedID
       `);
     
     return result;
@@ -38,12 +38,12 @@ async function getAllTrends() {
   }
 }
 
-async function getTrendByLabel(label) {
+async function getTrendByGeneratedID(generatedId) {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
-      .query('SELECT * FROM Trend WHERE Label = @label');
+      .input('generatedId', sql.NVarChar, generatedId)
+      .query('SELECT * FROM Trend WHERE GeneratedID = @generatedId');
     
     return result.recordset[0];
   } catch (err) {
@@ -65,13 +65,13 @@ async function getTrendsPaginated(page = 1, limit = 10, search = '') {
         .input('limit', sql.Int, parseInt(limit))
         .query(`
           SELECT * FROM Trend 
-          WHERE Name LIKE @search OR Label LIKE @search
+          WHERE Name LIKE @search OR GeneratedID LIKE @search
           ORDER BY Id DESC
           OFFSET @offset ROWS
           FETCH NEXT @limit ROWS ONLY;
           
           SELECT COUNT(*) as total FROM Trend 
-          WHERE Name LIKE @search OR Label LIKE @search;
+          WHERE Name LIKE @search OR GeneratedID LIKE @search;
         `);
     } else {
       result = await pool.request()
@@ -100,15 +100,15 @@ async function getTrendsPaginated(page = 1, limit = 10, search = '') {
   }
 }
 
-async function getLikesByTrendLabel(label) {
+async function getLikesByTrendGeneratedID(generatedId) {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .query(`
         SELECT COUNT(*) as likesCount
         FROM TrendLikes 
-        WHERE TrendLabel = @label
+        WHERE TrendGeneratedID = @generatedId
       `);
     
     return result.recordset[0].likesCount;
@@ -118,19 +118,19 @@ async function getLikesByTrendLabel(label) {
   }
 }
 
-async function likeTrendByLabel(userId, label) {
+async function likeTrendByGeneratedID(userId, generatedId) {
   try {    
     const id = parseInt(userId);
     const pool = await getDb();
 
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('userId', sql.Int, id)
       .query(`
-        IF NOT EXISTS (SELECT 1 FROM TrendLikes WHERE TrendLabel = @label AND UserId = @userId)
-          INSERT INTO TrendLikes (TrendLabel, UserId) VALUES (@label, @userId)
+        IF NOT EXISTS (SELECT 1 FROM TrendLikes WHERE TrendGeneratedID = @generatedId AND UserId = @userId)
+          INSERT INTO TrendLikes (TrendGeneratedID, UserId) VALUES (@generatedId, @userId)
         ELSE
-          DELETE FROM TrendLikes WHERE TrendLabel = @label AND UserId = @userId
+          DELETE FROM TrendLikes WHERE TrendGeneratedID = @generatedId AND UserId = @userId
       `);
     
     // Check if the like was added or removed
@@ -161,7 +161,7 @@ async function getTrendDropdownList() {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .query('SELECT Id, Name, Label FROM Trend ORDER BY Name');
+      .query('SELECT Id, Name, GeneratedID FROM Trend ORDER BY Name');
     
     return result.recordset;
   } catch (err) {
@@ -188,20 +188,20 @@ async function createTrend(trendData) {
   try {
     const pool = await getDb();
     
-    // Check if Label already exists
+    // Check if GeneratedID already exists
     const checkResult = await pool.request()
-      .input('label', sql.NVarChar, trendData.Label)
-      .query('SELECT Id FROM Trend WHERE Label = @label');
+      .input('generatedId', sql.NVarChar, trendData.GeneratedID)
+      .query('SELECT Id FROM Trend WHERE GeneratedID = @generatedId');
       
     if (checkResult.recordset.length > 0) {
-      const error = new Error('Trend with this Label already exists');
+      const error = new Error('Trend with this GeneratedID already exists');
       error.statusCode = 400;
       throw error;
     }
 
     console.log("Creating trend:", trendData);
     const result = await pool.request()
-      .input('label', sql.NVarChar, trendData.Label)
+      .input('generatedId', sql.NVarChar, trendData.GeneratedID)
       .input('name', sql.NVarChar, trendData.Name)
       .input('abstract', sql.NVarChar, trendData.Abstract)
       .input('stage', sql.NVarChar, trendData.Stage)
@@ -215,16 +215,16 @@ async function createTrend(trendData) {
       .input('imageUrl', sql.NVarChar, trendData.ImageUrl)
       .input('ring', sql.Int, trendData.Ring)
       .input('quadrant', sql.Int, trendData.Quadrant)
-      .input('link', sql.NVarChar, process.env.APP_URL+'trends/'+trendData.Label)
+      .input('link', sql.NVarChar, process.env.APP_URL+'trends/'+trendData.GeneratedID)
       .query(`
         INSERT INTO Trend (
-          Label, Name, Abstract, Stage, DefinitionAndScope,
+          GeneratedID, Name, Abstract, Stage, DefinitionAndScope,
           RelevanceAndImpact, TrendSegment, TrendMaturityLevel,
           RecommendedAction, ContentSource, LastChangeDate, ImageUrl, Ring, Quadrant, Link
           )
           OUTPUT INSERTED.*
           VALUES (
-          @label, @name, @abstract, @stage, @definitionAndScope,
+          @generatedId, @name, @abstract, @stage, @definitionAndScope,
           @relevanceAndImpact, @trendSegment, @trendMaturity,
           @recommendedAction, @contentSource, @lastChangeDate, @imageUrl, @ring, @quadrant, @link
           )
@@ -238,12 +238,12 @@ async function createTrend(trendData) {
   }
 }
 
-async function updateTrend(label, trendData) {
+async function updateTrend(generatedId, trendData) {
   try {
     const pool = await getDb();
     
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('name', sql.NVarChar, trendData.Name)
       .input('abstract', sql.NVarChar, trendData.Abstract)
       .input('stage', sql.NVarChar, trendData.Stage)
@@ -257,7 +257,7 @@ async function updateTrend(label, trendData) {
       .input('imageUrl', sql.NVarChar, trendData.ImageUrl)
       .input('ring', sql.Int, trendData.Ring)
       .input('quadrant', sql.Int, trendData.Quadrant)
-      .input('link', sql.NVarChar, process.env.APP_URL+'trend/'+label)
+      .input('link', sql.NVarChar, process.env.APP_URL+'trend/'+generatedId)
       .query(`
         UPDATE Trend
         SET Name = @name,
@@ -274,9 +274,9 @@ async function updateTrend(label, trendData) {
             Ring = @ring,
             Quadrant = @quadrant,
             Link = @link
-        WHERE Label = @label;
+        WHERE GeneratedID = @generatedId;
         
-        SELECT * FROM Trend WHERE Label = @label;
+        SELECT * FROM Trend WHERE GeneratedID = @generatedId;
       `);
     
     return result;
@@ -286,19 +286,19 @@ async function updateTrend(label, trendData) {
   }
 }
 
-async function deleteTrend(label) {
+async function deleteTrend(generatedId) {
   try {
     const pool = await getDb();
     
     // First delete all likes for this trend
     await pool.request()
-      .input('label', sql.NVarChar, label)
-      .query('DELETE FROM TrendLikes WHERE TrendLabel = @label');
+      .input('generatedId', sql.NVarChar, generatedId)
+      .query('DELETE FROM TrendLikes WHERE TrendGeneratedID = @generatedId');
     
     // Then delete the trend
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
-      .query('DELETE FROM Trend WHERE Label = @label');
+      .input('generatedId', sql.NVarChar, generatedId)
+      .query('DELETE FROM Trend WHERE GeneratedID = @generatedId');
     
     return result.rowsAffected[0] > 0;
   } catch (err) {
@@ -307,19 +307,19 @@ async function deleteTrend(label) {
   }
 }
 
-async function updateTrendStage(label, stage) {
+async function updateTrendStage(generatedId, stage) {
   try {
     const pool = await getDb();
     
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('stage', sql.NVarChar, stage)
       .query(`
         UPDATE Trend
         SET Stage = @stage
-        WHERE Label = @label;
+        WHERE GeneratedID = @generatedId;
         
-        SELECT * FROM Trend WHERE Label = @label;
+        SELECT * FROM Trend WHERE GeneratedID = @generatedId;
       `);
     
     return result.recordset[0];
@@ -359,7 +359,7 @@ async function getTrendsByRing(ringId) {
 
 export {
   getAllTrends,
-  getTrendByLabel,
+  getTrendByGeneratedID,
   getTrendsPaginated,
   getTrendsCount,
   getTrendDropdownList,
@@ -367,9 +367,9 @@ export {
   createTrend,
   updateTrend,
   deleteTrend,
-  likeTrendByLabel,
-  getUserLikeStatusByTrendLabel,
-  getLikesByTrendLabel,
+  likeTrendByGeneratedID,
+  getUserLikeStatusByTrendGeneratedID,
+  getLikesByTrendGeneratedID,
   updateTrendStage,
   getTrendsByQuadrant,
   getTrendsByRing

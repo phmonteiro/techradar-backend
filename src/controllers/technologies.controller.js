@@ -1,6 +1,6 @@
 import {
   getAllTechnologies,
-  getTechnologyByLabel,
+  getTechnologyByGeneratedID,
   getTechnologiesPaginated,
   getTechnologiesCount,
   getTechnologyDropdownList,
@@ -8,9 +8,9 @@ import {
   createTechnology,
   updateTechnology,
   deleteTechnology,
-  likeTechnologyByLabel,
-  getUserLikeStatusByTechnologyLabel,
-  getLikesByTechnologyLabel,
+  likeTechnologyByGeneratedID,
+  getUserLikeStatusByTechnologyGeneratedID,
+  getLikesByTechnologyGeneratedID,
   updateTechnologyStage
 } from '../models/technology.model.js';
 
@@ -81,9 +81,9 @@ export const getTechnologyByIdHandler = async (req, res) => {
 };
 
 // Get technology by label
-export const getTechnologyByLabelHandler = async (req, res) => {
+export const getTechnologyByGeneratedIDHandler = async (req, res) => {
   try {
-    const technology = await getTechnologyByLabel(req.params.label);
+    const technology = await getTechnologyByGeneratedID(req.params.generatedId);
     
     if (!technology) {
       return res.status(404).json({
@@ -106,12 +106,12 @@ export const getTechnologyByLabelHandler = async (req, res) => {
 };
 
 // Like technology by label
-export const likeTechnologyByLabelHandler = async (req, res) => {
+export const likeTechnologyByGeneratedIDHandler = async (req, res) => {
   try {
     // Get user ID from JWT token payload
     const userId = req.user.sub;
-    const { label } = req.params;
-    const result = await likeTechnologyByLabel(userId, label);
+    const { generatedId } = req.params;
+    const result = await likeTechnologyByGeneratedID(userId, generatedId);
 
     if (result === null || result === undefined) {
       return res.status(404).json({
@@ -135,10 +135,10 @@ export const likeTechnologyByLabelHandler = async (req, res) => {
 };
 
 // Get likes by technology label
-export const getLikesByTechnologyLabelHandler = async (req, res) => {
+export const getLikesByTechnologyGeneratedIDHandler = async (req, res) => {
   try {  
-    const { label } = req.params;
-    const result = await getLikesByTechnologyLabel(label);
+    const { generatedId } = req.params;
+    const result = await getLikesByTechnologyGeneratedID(generatedId);
     
     if (result === null || result === undefined) {
       return res.status(404).json({
@@ -162,14 +162,14 @@ export const getLikesByTechnologyLabelHandler = async (req, res) => {
 };
 
 // Get user like status by technology label
-export const getUserLikeStatusByTechnologyLabelHandler = async (req, res) => {
+export const getUserLikeStatusByTechnologyGeneratedIDHandler = async (req, res) => {
   try {
     // Get user ID from JWT token payload
     const userId = parseInt(req.user.sub);
-    const { label } = req.params;
+    const { generatedId } = req.params;
 
     // Check like status in TechnologyLikes table
-    const result = await getUserLikeStatusByTechnologyLabel(userId, label);
+    const result = await getUserLikeStatusByTechnologyGeneratedID(userId, generatedId);
 
     const hasLiked = result.recordset.length > 0;
 
@@ -177,7 +177,7 @@ export const getUserLikeStatusByTechnologyLabelHandler = async (req, res) => {
       success: true,
       data: {
         userId,
-        technologyLabel: label,
+        technologyGeneratedID: generatedId,
         likeStatus: hasLiked ? 'liked' : 'not liked'
       }
     });
@@ -300,7 +300,7 @@ export const updateTechnologyHandler = async (req, res) => {
 // Delete technology
 export const deleteTechnologyHandler = async (req, res) => {
   try {
-    const technology = await deleteTechnology(req.params.label);
+    const technology = await deleteTechnology(req.params.generatedId);
     
     if (!technology) {
       return res.status(404).json({
@@ -361,7 +361,7 @@ export const getTechnologiesByRingHandler = async (req, res) => {
 // Update technology stage
 export const updateTechnologyStageHandler = async (req, res) => {
   try {
-    const { label } = req.params;
+    const { generatedId } = req.params;
     const { stage } = req.body;
     
     // Check if user is admin
@@ -381,7 +381,7 @@ export const updateTechnologyStageHandler = async (req, res) => {
       });
     }
     
-    const technology = await updateTechnologyStage(label, stage);
+    const technology = await updateTechnologyStage(generatedId, stage);
     
     if (!technology) {
       return res.status(404).json({

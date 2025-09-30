@@ -1,6 +1,6 @@
 import {
   getAllTrends,
-  getTrendByLabel,
+  getTrendByGeneratedID,
   getTrendsPaginated,
   getTrendsCount,
   getTrendDropdownList,
@@ -8,9 +8,9 @@ import {
   createTrend,
   updateTrend,
   deleteTrend,
-  likeTrendByLabel,
-  getUserLikeStatusByTrendLabel,
-  getLikesByTrendLabel,
+  likeTrendByGeneratedID,
+  getUserLikeStatusByTrendGeneratedID,
+  getLikesByTrendGeneratedID,
   updateTrendStage
 } from '../models/trend.model.js';
 
@@ -86,9 +86,9 @@ export const getTrendByIdHandler = async (req, res) => {
 };
 
 // Get trend by label
-export const getTrendByLabelHandler = async (req, res) => {
+export const getTrendByGeneratedIDHandler = async (req, res) => {
   try {
-    const trend = await getTrendByLabel(req.params.label);
+    const trend = await getTrendByGeneratedID(req.params.generatedId);
     
     if (!trend) {
       return res.status(404).json({
@@ -110,13 +110,13 @@ export const getTrendByLabelHandler = async (req, res) => {
   }
 };
 
-// Like trend by label
-export const likeTrendByLabelHandler = async (req, res) => {
+// Like trend by GeneratedID
+export const likeTrendByGeneratedIDHandler = async (req, res) => {
   try {
     // Get user ID from JWT token payload
     const userId = req.user.sub;
-    const { label } = req.params;
-    const result = await likeTrendByLabel(userId, label);
+    const { generatedId } = req.params;
+    const result = await likeTrendByGeneratedID(userId, generatedId);
 
     if (result === null || result === undefined) {
       return res.status(404).json({
@@ -139,11 +139,11 @@ export const likeTrendByLabelHandler = async (req, res) => {
   }
 };
 
-// Get likes by trend label
-export const getLikesByTrendLabelHandler = async (req, res) => {
+// Get likes by trend GeneratedID
+export const getLikesByTrendGeneratedIDHandler = async (req, res) => {
   try {  
-    const { label } = req.params;
-    const result = await getLikesByTrendLabel(label);
+    const { generatedId } = req.params;
+    const result = await getLikesByTrendGeneratedID(generatedId);
     
     if (result === null || result === undefined) {
       return res.status(404).json({
@@ -166,15 +166,15 @@ export const getLikesByTrendLabelHandler = async (req, res) => {
   }
 };
 
-// Get user like status by trend label
-export const getUserLikeStatusByTrendLabelHandler = async (req, res) => {
+// Get user like status by trend GeneratedID
+export const getUserLikeStatusByTrendGeneratedIDHandler = async (req, res) => {
   try {
     // Get user ID from JWT token payload
     const userId = parseInt(req.user.sub);
-    const { label } = req.params;
+    const { generatedId } = req.params;
 
     // Check like status in TrendLikes table
-    const result = await getUserLikeStatusByTrendLabel(userId, label);
+    const result = await getUserLikeStatusByTrendGeneratedID(userId, generatedId);
 
     const hasLiked = result.recordset.length > 0;
 
@@ -182,7 +182,7 @@ export const getUserLikeStatusByTrendLabelHandler = async (req, res) => {
       success: true,
       data: {
         userId,
-        trendLabel: label,
+        trendGeneratedID: generatedId,
         likeStatus: hasLiked ? 'liked' : 'not liked'
       }
     });
@@ -273,7 +273,7 @@ export const createTrendHandler = async (req, res) => {
 // Update trend
 export const updateTrendHandler = async (req, res) => {
   try {
-    const trend = await updateTrend(req.params.label, req.body);    
+    const trend = await updateTrend(req.params.generatedId, req.body);    
     if (!trend) {
       return res.status(404).json({
         success: false,
@@ -373,7 +373,7 @@ export const getTrendsByRingHandler = async (req, res) => {
 export const updateTrendStageHandler = async (req, res) => {
   try {
     const { stage } = req.body;
-    const { label } = req.params;
+    const { generatedId } = req.params;
 
     if (!stage) {
       return res.status(400).json({
@@ -382,7 +382,7 @@ export const updateTrendStageHandler = async (req, res) => {
       });
     }
 
-    const trend = await updateTrendStage(label, stage);
+    const trend = await updateTrendStage(generatedId, stage);
     
     if (!trend) {
       return res.status(404).json({

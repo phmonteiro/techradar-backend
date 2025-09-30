@@ -1,7 +1,7 @@
 import sql from 'mssql';
 import { getDb } from '../config/database.js';
 
-async function getUserLikeStatusByTechnologyLabel(userId, label) {
+async function getUserLikeStatusByTechnologyGeneratedID(userId, generatedId) {
   try {
     if (!userId) {
       throw new Error('User ID is required');
@@ -11,12 +11,12 @@ async function getUserLikeStatusByTechnologyLabel(userId, label) {
     const pool = await getDb();
     const result = await pool.request()
       .input('UserId', sql.Int, userId)
-      .input('TechnologyLabel', sql.NVarChar, label)
+      .input('TechnologyGeneratedID', sql.NVarChar, generatedId)
       .query(`
         SELECT TOP 1 1 as liked
         FROM TechnologyLikes 
         WHERE UserId = @userId 
-        AND TechnologyLabel = @technologyLabel
+        AND TechnologyGeneratedID = @technologyGeneratedID
       `);
     
     return result;
@@ -38,12 +38,12 @@ async function getAllTechnologies() {
   }
 }
 
-async function getTechnologyByLabel(label) {
+async function getTechnologyByGeneratedID(generatedId) {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
-      .query('SELECT * FROM Technology WHERE Label = @label');
+      .input('generatedId', sql.NVarChar, generatedId)
+      .query('SELECT * FROM Technology WHERE GeneratedID = @generatedId');
     return result.recordset[0];
   } catch (err) {
     console.error('Database query failed:', err);
@@ -64,13 +64,13 @@ async function getTechnologiesPaginated(page = 1, limit = 10, search = '') {
         .input('limit', sql.Int, parseInt(limit))
         .query(`
           SELECT * FROM Technology 
-          WHERE Name LIKE @search OR Label LIKE @search
+          WHERE Name LIKE @search OR GeneratedID LIKE @search
           ORDER BY Id DESC
           OFFSET @offset ROWS
           FETCH NEXT @limit ROWS ONLY;
           
           SELECT COUNT(*) as total FROM Technology 
-          WHERE Name LIKE @search OR Label LIKE @search;
+          WHERE Name LIKE @search OR GeneratedID LIKE @search;
         `);
     } else {
       result = await pool.request()
@@ -99,15 +99,15 @@ async function getTechnologiesPaginated(page = 1, limit = 10, search = '') {
   }
 }
 
-async function getLikesByTechnologyLabel(label) {
+async function getLikesByTechnologyGeneratedID(generatedId) {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .query(`
         SELECT COUNT(*) as likesCount
         FROM TechnologyLikes 
-        WHERE TechnologyLabel = @label
+        WHERE TechnologyGeneratedID = @generatedId
       `);
     
     return result.recordset[0].likesCount;
@@ -117,19 +117,19 @@ async function getLikesByTechnologyLabel(label) {
   }
 }
 
-async function likeTechnologyByLabel(userId, label) {
+async function likeTechnologyByGeneratedID(userId, generatedId) {
   try {    
     const id = parseInt(userId);
     const pool = await getDb();
 
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('userId', sql.Int, id)
       .query(`
-        IF NOT EXISTS (SELECT 1 FROM TechnologyLikes WHERE TechnologyLabel = @label AND UserId = @userId)
-          INSERT INTO TechnologyLikes (TechnologyLabel, UserId) VALUES (@label, @userId)
+        IF NOT EXISTS (SELECT 1 FROM TechnologyLikes WHERE TechnologyGeneratedID = @generatedId AND UserId = @userId)
+          INSERT INTO TechnologyLikes (TechnologyGeneratedID, UserId) VALUES (@generatedId, @userId)
         ELSE
-          DELETE FROM TechnologyLikes WHERE TechnologyLabel = @label AND UserId = @userId
+          DELETE FROM TechnologyLikes WHERE TechnologyGeneratedID = @generatedId AND UserId = @userId
       `);
     
     // Check if the like was added or removed
@@ -161,7 +161,7 @@ async function getTechnologyDropdownList() {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .query('SELECT Id, Name, Label FROM Technology ORDER BY Name');
+      .query('SELECT Id, Name, GeneratedID FROM Technology ORDER BY Name');
     
     return result.recordset;
   } catch (err) {
@@ -188,19 +188,19 @@ async function createTechnology(technologyData) {
   try {
     const pool = await getDb();
     
-    // Check if Label already exists
+    // Check if GeneratedID already exists
     const checkResult = await pool.request()
-      .input('label', sql.NVarChar, technologyData.Label)
-      .query('SELECT Id FROM Technology WHERE Label = @label');
+      .input('generatedId', sql.NVarChar, technologyData.GeneratedID)
+      .query('SELECT Id FROM Technology WHERE GeneratedID = @generatedId');
       
     if (checkResult.recordset.length > 0) {
-      const error = new Error('Technology with this Label already exists');
+      const error = new Error('Technology with this GeneratedID already exists');
       error.statusCode = 400;
       throw error;
     }
 
     const result = await pool.request()
-      .input('label', sql.NVarChar, technologyData.Label)
+      .input('generatedId', sql.NVarChar, technologyData.GeneratedID)
       .input('name', sql.NVarChar, technologyData.Name)
       .input('abstract', sql.NVarChar, technologyData.Abstract)
       .input('stage', sql.NVarChar, technologyData.Stage)
@@ -214,16 +214,16 @@ async function createTechnology(technologyData) {
       .input('imageUrl', sql.NVarChar, technologyData.ImageUrl)
       .input('ring', sql.Int, technologyData.Ring)
       .input('quadrant', sql.Int, technologyData.Quadrant)
-      .input('link', sql.NVarChar, process.env.APP_URL+'technology/'+technologyData.Label)
+      .input('link', sql.NVarChar, process.env.APP_URL+'technology/'+technologyData.GeneratedID)
       .query(`
         INSERT INTO Technology (
-          Label, Name, Abstract, Stage, DefinitionAndScope,
+          GeneratedID, Name, Abstract, Stage, DefinitionAndScope,
           RelevanceAndImpact, TechnologySegment, TechnologyMaturity,
           RecommendedAction, ContentSource, LastReviewDate, ImageUrl, Ring, Quadrant, Link
           )
           OUTPUT INSERTED.*
           VALUES (
-          @label, @name, @abstract, @stage, @definitionAndScope,
+          @generatedId, @name, @abstract, @stage, @definitionAndScope,
           @relevanceAndImpact, @technologySegment, @technologyMaturity,
           @recommendedAction, @contentSource, @lastReviewDate, @imageUrl, @ring, @quadrant, @link
           )
@@ -236,13 +236,13 @@ async function createTechnology(technologyData) {
   }
 }
 
-async function updateTechnology(label, technologyData) {
+async function updateTechnology(generatedId, technologyData) {
   try {
     const pool = await getDb();
 
     
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('name', sql.NVarChar, technologyData.Name)
       .input('abstract', sql.NVarChar, technologyData.Abstract)
       .input('stage', sql.NVarChar, technologyData.Stage)
@@ -268,7 +268,7 @@ async function updateTechnology(label, technologyData) {
           LastReviewDate = @lastReviewDate,
           ImageUrl = @imageUrl
         OUTPUT INSERTED.*
-        WHERE Label = @label
+        WHERE GeneratedID = @generatedId
       `);
     
     return result.recordset[0];
@@ -278,13 +278,13 @@ async function updateTechnology(label, technologyData) {
   }
 }
 
-async function deleteTechnology(label) {
+async function deleteTechnology(generatedId) {
   try {
     const pool = await getDb();
     
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
-      .query('DELETE FROM Technology OUTPUT DELETED.* WHERE Label = @label');
+      .input('generatedId', sql.NVarChar, generatedId)
+      .query('DELETE FROM Technology OUTPUT DELETED.* WHERE GeneratedID = @generatedId');
     
     return result.recordset[0];
   } catch (err) {
@@ -293,19 +293,19 @@ async function deleteTechnology(label) {
   }
 }
 
-async function updateTechnologyStage(label, stage) {
+async function updateTechnologyStage(generatedId, stage) {
   try {
     const pool = await getDb();
     
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('stage', sql.NVarChar, stage)
       .query(`
         UPDATE Technology SET
           Stage = @stage,
           LastReviewDate = GETDATE()
         OUTPUT INSERTED.*
-        WHERE Label = @label
+        WHERE GeneratedID = @generatedId
       `);
     
     return result.recordset[0];
@@ -317,7 +317,7 @@ async function updateTechnologyStage(label, stage) {
 
 export {
   getAllTechnologies,
-  getTechnologyByLabel,
+  getTechnologyByGeneratedID,
   getTechnologiesPaginated,
   getTechnologiesCount,
   getTechnologyDropdownList,
@@ -325,8 +325,8 @@ export {
   createTechnology,
   updateTechnology,
   deleteTechnology,
-  getUserLikeStatusByTechnologyLabel,
-  likeTechnologyByLabel,
-  getLikesByTechnologyLabel,
+  getUserLikeStatusByTechnologyGeneratedID,
+  likeTechnologyByGeneratedID,
+  getLikesByTechnologyGeneratedID,
   updateTechnologyStage
 };

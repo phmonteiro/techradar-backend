@@ -11,33 +11,33 @@ async function getAllComments() {
     throw err;
   }
 }
-async function getCommentsByType(type, label, page = 1, limit = 10) {
+async function getCommentsByType(type, generatedId, page = 1, limit = 10) {
   try {
     const pool = await getDb();
     const offset = (page - 1) * limit;
     
     const result = await pool.request()
       .input('type', sql.NVarChar, type)
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('offset', sql.Int, offset)
       .input('limit', sql.Int, parseInt(limit))
       .query(`
         SELECT * FROM Comments 
-        WHERE Type = @type AND Label = @label 
+        WHERE Type = @type AND GeneratedID = @generatedId 
         ORDER BY CreatedAt DESC
         OFFSET @offset ROWS
         FETCH NEXT @limit ROWS ONLY;
         
         SELECT COUNT(*) as total FROM Comments 
-        WHERE Type = @type AND Label = @label;
+        WHERE Type = @type AND GeneratedID = @generatedId;
       `);
     
     return {
-      comments: result.recordsets[0],
-      total: result.recordsets[1][0].total,
+      comments: result.recordsets[0] || [],
+      total: result.recordsets[1] ? result.recordsets[1][0].total : 0,
       page: parseInt(page),
       limit: parseInt(limit),
-      totalPages: Math.ceil(result.recordsets[1][0].total / limit)
+      totalPages: result.recordsets[1] ? Math.ceil(result.recordsets[1][0].total / limit) : 0
     };
   } catch (err) {
     console.error('Database query failed:', err);
@@ -45,42 +45,32 @@ async function getCommentsByType(type, label, page = 1, limit = 10) {
   }
 }
 
-async function getCommentsByTrend(label, page = 1, limit = 10) {
+async function getCommentsByTrend(generatedId, page = 1, limit = 10) {
   try {
     const pool = await getDb();
     const offset = (page - 1) * limit;
     
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('offset', sql.Int, offset)
       .input('limit', sql.Int, parseInt(limit))
       .query(`
         SELECT * FROM Comments 
-        WHERE Label = @label 
+        WHERE GeneratedID = @generatedId 
         ORDER BY CreatedAt DESC
         OFFSET @offset ROWS
         FETCH NEXT @limit ROWS ONLY;
         
         SELECT COUNT(*) as total FROM Comments 
-        WHERE Label = @label;
+        WHERE GeneratedID = @generatedId;
       `);
     
-    if (!result.recordsets[0] || result.recordsets[0].length === 0) {
-      return {
-        comments: [],
-        total: 0,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: 0
-      };
-    }
-
     return {
-      comments: result.recordsets[0],
-      total: result.recordsets[1][0].total,
+      comments: result.recordsets[0] || [],
+      total: result.recordsets[1] ? result.recordsets[1][0].total : 0,
       page: parseInt(page),
       limit: parseInt(limit),
-      totalPages: Math.ceil(result.recordsets[1][0].total / limit)
+      totalPages: result.recordsets[1] ? Math.ceil(result.recordsets[1][0].total / limit) : 0
     };
   } catch (err) {
     console.error('Database query failed:', err);
@@ -102,42 +92,32 @@ async function getCommentById(id) {
   }
 }
 
-async function getCommentsByTechnology(label, page = 1, limit = 10) {
+async function getCommentsByTechnology(generatedId, page = 1, limit = 10) {
   try {
     const pool = await getDb();
     const offset = (page - 1) * limit;
     
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
+      .input('generatedId', sql.NVarChar, generatedId)
       .input('offset', sql.Int, offset)
       .input('limit', sql.Int, parseInt(limit))
       .query(`
         SELECT * FROM Comments 
-        WHERE label = @label 
+        WHERE GeneratedID = @generatedId 
         ORDER BY CreatedAt DESC
         OFFSET @offset ROWS
         FETCH NEXT @limit ROWS ONLY;
         
         SELECT COUNT(*) as total FROM Comments 
-        WHERE label = @label;
+        WHERE GeneratedID = @generatedId;
       `);
     
-    if (!result.recordsets[0] || result.recordsets[0].length === 0) {
-      return {
-        comments: [],
-        total: 0,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: 0
-      };
-    }
-
     return {
-      comments: result.recordsets[0],
-      total: result.recordsets[1][0].total,
+      comments: result.recordsets[0] || [],
+      total: result.recordsets[1] ? result.recordsets[1][0].total : 0,
       page: parseInt(page),
       limit: parseInt(limit),
-      totalPages: Math.ceil(result.recordsets[1][0].total / limit)
+      totalPages: result.recordsets[1] ? Math.ceil(result.recordsets[1][0].total / limit) : 0
     };
   } catch (err) {
     console.error('Database query failed:', err);
@@ -161,12 +141,12 @@ async function getCommentsPaginated(page = 1, limit = 10, search = '') {
                  CASE 
                    WHEN C.Type = 'technology' THEN T.Name
                    WHEN C.Type = 'trend' THEN TR.Name
-                   ELSE C.Label
+                   ELSE C.GeneratedID
                  END as ItemName,
                  T.Name as TechnologyName
           FROM Comments C
-          LEFT JOIN Technologies T ON C.Label = T.Label AND (C.Type = 'technology' OR C.Type IS NULL)
-          LEFT JOIN Trends TR ON C.Label = TR.Label AND C.Type = 'trend'
+          LEFT JOIN Technology T ON C.GeneratedID = T.GeneratedID AND (C.Type = 'technology' OR C.Type IS NULL)
+          LEFT JOIN Trends TR ON C.GeneratedID = TR.GeneratedID AND C.Type = 'trend'
           WHERE C.Text LIKE @search 
              OR C.Author LIKE @search
              OR T.Name LIKE @search
@@ -176,8 +156,8 @@ async function getCommentsPaginated(page = 1, limit = 10, search = '') {
           FETCH NEXT @limit ROWS ONLY;
           
           SELECT COUNT(*) as total FROM Comments C
-          LEFT JOIN Technologies T ON C.Label = T.Label AND (C.Type = 'technology' OR C.Type IS NULL)
-          LEFT JOIN Trends TR ON C.Label = TR.Label AND C.Type = 'trend'
+          LEFT JOIN Technology T ON C.GeneratedID = T.GeneratedID AND (C.Type = 'technology' OR C.Type IS NULL)
+          LEFT JOIN Trends TR ON C.GeneratedID = TR.GeneratedID AND C.Type = 'trend'
           WHERE C.Text LIKE @search 
              OR C.Author LIKE @search
              OR T.Name LIKE @search
@@ -192,12 +172,12 @@ async function getCommentsPaginated(page = 1, limit = 10, search = '') {
                  CASE 
                    WHEN C.Type = 'technology' THEN T.Name
                    WHEN C.Type = 'trend' THEN TR.Name
-                   ELSE C.Label
+                   ELSE C.GeneratedID
                  END as ItemName,
                  T.Name as TechnologyName
           FROM Comments C
-          LEFT JOIN Technologies T ON C.Label = T.Label AND (C.Type = 'technology' OR C.Type IS NULL)
-          LEFT JOIN Trends TR ON C.Label = TR.Label AND C.Type = 'trend'
+          LEFT JOIN Technology T ON C.GeneratedID = T.GeneratedID AND (C.Type = 'technology' OR C.Type IS NULL)
+          LEFT JOIN Trends TR ON C.GeneratedID = TR.GeneratedID AND C.Type = 'trend'
           ORDER BY C.CreatedAt DESC
           OFFSET @offset ROWS
           FETCH NEXT @limit ROWS ONLY;
@@ -236,7 +216,7 @@ async function createComment(commentData) {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('label', sql.NVarChar, commentData.Label || commentData.label)
+      .input('generatedId', sql.NVarChar, commentData.GeneratedID || commentData.Label || commentData.label)
       .input('type', sql.NVarChar, commentData.Type || commentData.type || 'technology')
       .input('author', sql.NVarChar, commentData.Author || commentData.author)
       .input('email', sql.NVarChar, commentData.Email || commentData.email)
@@ -245,11 +225,11 @@ async function createComment(commentData) {
       .input('createdAt', sql.DateTime, new Date())
       .query(`
         INSERT INTO Comments (
-          Label, Type, Text, Author, Email, IsApproved, CreatedAt
+          GeneratedID, Type, Text, Author, Email, IsApproved, CreatedAt
         )
         OUTPUT INSERTED.*
         VALUES (
-          @label, @type, @text, @author, @email, @isApproved, @createdAt
+          @generatedId, @type, @text, @author, @email, @isApproved, @createdAt
         )
       `);
     

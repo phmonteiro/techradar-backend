@@ -38,16 +38,13 @@ export const getCommentsByTechnologyHandler = async (req, res) => {
     
     const result = await getCommentsByTechnology(label, page, limit);
     
-    if (!result || result.comments.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No comments found for this technology'
-      });
-    }
-
     res.status(200).json({
       success: true,
-      ...result
+      comments: result?.comments || [],
+      total: result?.total || 0,
+      page: result?.page || 1,
+      limit: result?.limit || 10,
+      totalPages: result?.totalPages || 0
     });
   }
   catch (error) {
@@ -66,15 +63,13 @@ export const getCommentsByTrendHandler = async (req, res) => {
     
     const result = await getCommentsByTrend(label, page, limit);
     
-    if (!result || result.comments.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No comments found for this trend'
-      });
-    }
     res.status(200).json({
       success: true,
-      ...result
+      comments: result?.comments || [],
+      total: result?.total || 0,
+      page: result?.page || 1,
+      limit: result?.limit || 10,
+      totalPages: result?.totalPages || 0
     });
   }
   catch (error) {
@@ -89,17 +84,11 @@ export const getCommentsByTrendHandler = async (req, res) => {
 export const getCommentsCountHandler = async (req, res) => {
   try {
     const count = await getCommentsCount();
-    if ( count === 0 ) {
-      return res.status(404).json({
-        sucess: false,
-        message: 'No messages found'
-      })
-    }
-
+    
     res.status(200).json({
       success: true,
       message: "Comments count fetched successfully",
-      data: count
+      count: count || 0
     })
   } catch (err) {
     res.status(500).json({
@@ -115,14 +104,14 @@ export const createCommentHandler = async (req, res) => {
     const commentData = {
       text: req.body.text,
       type: req.body.type,
-      label: req.body.label,
+      GeneratedID: req.body.generatedId || req.body.label, // Support both new and legacy field names
       author: req.user?.displayName || 'Anonymous'  // Fallback if displayName is undefined
     };
 
     console.log("commentData");
     console.log(commentData);
 
-    if (!commentData || !commentData.text || !commentData.type || !commentData.label) {
+    if (!commentData || !commentData.text || !commentData.type || !commentData.GeneratedID) {
       res.status(400).json({
         success: false,
         message: 'Invalid comment data'

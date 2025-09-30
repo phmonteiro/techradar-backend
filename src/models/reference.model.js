@@ -12,15 +12,15 @@ async function getAllReferences() {
   }
 }
 
-async function getReferencesByTrend(label) {
+async function getReferencesByTrend(generatedId) {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
-      .query(`SELECT * FROM [References] WHERE Label = @label AND Type = 'Trend' ORDER BY Label`);
-    return result.recordset;
+      .input('generatedId', sql.NVarChar, generatedId)
+      .query(`SELECT * FROM [References] WHERE GeneratedID = @generatedId AND Type = 'Trend' ORDER BY GeneratedID`);
+    return result.recordset || [];
   } catch (err) {
-    console.error(`Database query failed in getReferencesByTrend(${label}):`, err);
+    console.error(`Database query failed in getReferencesByTrend(${generatedId}):`, err);
     throw err;
   }
 }
@@ -39,62 +39,62 @@ async function getReferenceById(id) {
   }
 }
 
-async function getReferencesByTechnology(label) {
+async function getReferencesByTechnology(generatedId) {
   try {
     const pool = await getDb();
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
-      .query(`SELECT * FROM [References] WHERE Label = @label and Type = 'Technology' ORDER BY Label`);
+      .input('generatedId', sql.NVarChar, generatedId)
+      .query(`SELECT * FROM [References] WHERE GeneratedID = @generatedId and Type = 'Technology' ORDER BY GeneratedID`);
     
-    return result.recordset;
+    return result.recordset || [];
   } catch (err) {
-    console.error(`Database query failed in getReferencesByTechnology(${label}):`, err);
+    console.error(`Database query failed in getReferencesByTechnology(${generatedId}):`, err);
     throw err;
   }
 }
 
-async function getReferencesPaginated(page = 1, limit = 10, search = '', Label = null) {
+async function getReferencesPaginated(page = 1, limit = 10, search = '', generatedId = null) {
   try {
     const pool = await getDb();
     const offset = (page - 1) * limit;
     let result;
     
-    if (Label && search) {
+    if (generatedId && search) {
       result = await pool.request()
-        .input('Label', sql.Int, Label)
+        .input('generatedId', sql.NVarChar, generatedId)
         .input('search', sql.NVarChar, `%${search}%`)
         .input('offset', sql.Int, offset)
         .input('limit', sql.Int, parseInt(limit))
         .query(`
           SELECT R.*, T.Name as TechnologyName 
           FROM [dbo].[References] R
-          JOIN Technologies T ON R.Label = T.Id
-          WHERE R.Label = @Label 
+          LEFT JOIN Technology T ON R.GeneratedID = T.GeneratedID
+          WHERE R.GeneratedID = @generatedId 
           AND (R.Title LIKE @search OR R.Url LIKE @search)
           ORDER BY R.Id DESC
           OFFSET @offset ROWS
           FETCH NEXT @limit ROWS ONLY;
           
           SELECT COUNT(*) as total FROM [dbo].[References] 
-          WHERE Label = @Label
+          WHERE GeneratedID = @generatedId
           AND (Title LIKE @search OR Url LIKE @search);
         `);
-    } else if (Label) {
+    } else if (generatedId) {
       result = await pool.request()
-        .input('Label', sql.Int, Label)
+        .input('generatedId', sql.NVarChar, generatedId)
         .input('offset', sql.Int, offset)
         .input('limit', sql.Int, parseInt(limit))
         .query(`
           SELECT R.*, T.Name as TechnologyName 
           FROM [dbo].[References] R
-          JOIN Technologies T ON R.Label = T.Label
-          WHERE R.Label = @Label
+          LEFT JOIN Technology T ON R.GeneratedID = T.GeneratedID
+          WHERE R.GeneratedID = @generatedId
           ORDER BY R.Id DESC
           OFFSET @offset ROWS
           FETCH NEXT @limit ROWS ONLY;
           
           SELECT COUNT(*) as total FROM [dbo].[References]
-          WHERE Label = @Label;
+          WHERE GeneratedID = @generatedId;
         `);
     } else if (search) {
       result = await pool.request()
@@ -104,7 +104,7 @@ async function getReferencesPaginated(page = 1, limit = 10, search = '', Label =
         .query(`
           SELECT R.*, T.Name as TechnologyName 
           FROM [dbo].[References] R
-          JOIN Technologies T ON R.Label = T.Label
+          LEFT JOIN Technology T ON R.GeneratedID = T.GeneratedID
           WHERE R.Title LIKE @search OR R.Url LIKE @search
           ORDER BY R.Id DESC
           OFFSET @offset ROWS
@@ -120,7 +120,7 @@ async function getReferencesPaginated(page = 1, limit = 10, search = '', Label =
         .query(`
           SELECT R.*, T.Name as TechnologyName 
           FROM [dbo].[References] R
-          JOIN Technologies T ON R.Label = T.Label
+          LEFT JOIN Technology T ON R.GeneratedID = T.GeneratedID
           ORDER BY R.Id DESC
           OFFSET @offset ROWS 
           FETCH NEXT @limit ROWS ONLY;
@@ -160,16 +160,16 @@ async function createReference(referenceData) {
     const pool = await getDb();
     
     const result = await pool.request()
-      .input('Label', sql.NVarChar, referenceData.Label)
+      .input('generatedId', sql.NVarChar, referenceData.GeneratedID || referenceData.Label)
       .input('title', sql.NVarChar, referenceData.Title)
       .input('url', sql.NVarChar, referenceData.Url)
       .input('type', sql.NVarChar, referenceData.Type )
       .query(`
         INSERT INTO [References] (
-            Label, Title, Url, Type)
+            GeneratedID, Title, Url, Type)
         OUTPUT INSERTED.*
         VALUES (
-          @Label, @title, @url, @type
+          @generatedId, @title, @url, @type
         )
       `);
     
