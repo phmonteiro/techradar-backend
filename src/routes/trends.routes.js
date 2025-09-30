@@ -3,16 +3,16 @@ import express from 'express';
 import { 
     getAllTrendsHandler, 
     getTrendByIdHandler, 
-    getTrendByLabelHandler, 
+    getTrendByGeneratedIDHandler, 
     getTrendsCountHandler,
     createTrendHandler, 
     updateTrendHandler, 
     deleteTrendHandler,
     getTrendsByQuadrantHandler,
     getTrendsByRingHandler,
-    getUserLikeStatusByTrendLabelHandler,
-    getLikesByTrendLabelHandler,
-    likeTrendByLabelHandler,
+    getUserLikeStatusByTrendGeneratedIDHandler,
+    getLikesByTrendGeneratedIDHandler,
+    likeTrendByGeneratedIDHandler,
     updateTrendStageHandler
 } from '../controllers/trends.controller.js';
 
@@ -40,20 +40,20 @@ router.use(verifyToken);
 // Get trends count
 router.get('/count', getTrendsCountHandler);
 
-// Get trend by ID
-router.get('/:label', getTrendByLabelHandler);
+// Get trend by GeneratedID
+router.get('/:generatedId', getTrendByGeneratedIDHandler);
 
-// Get likes by trend label
-router.get('/:label/likes', getLikesByTrendLabelHandler);
+// Get likes by trend GeneratedID
+router.get('/:generatedId/likes', getLikesByTrendGeneratedIDHandler);
 
-// Like trend by label
-router.post('/:label/like', likeTrendByLabelHandler);
+// Like trend by GeneratedID
+router.post('/:generatedId/like', likeTrendByGeneratedIDHandler);
 
-// Get user like status by trend label
-router.get('/:label/likes/status', getUserLikeStatusByTrendLabelHandler);
+// Get user like status by trend GeneratedID
+router.get('/:generatedId/likes/status', getUserLikeStatusByTrendGeneratedIDHandler);
 
 // Update trend stage
-router.patch('/:label/stage', updateTrendStageHandler);
+router.patch('/:generatedId/stage', updateTrendStageHandler);
 
 // Get trends by quadrant
 router.get('/quadrant/:quadrantId', getTrendsByQuadrantHandler);
@@ -68,7 +68,7 @@ router.post('/', createTrendHandler);
 router.put('/:id', updateTrendHandler);
 
 // Delete trend
-router.delete('/:id', deleteTrendHandler);
+router.delete('/:generatedId', deleteTrendHandler);
 
 // Export for ES modules
 export const trendsRoutes = router;

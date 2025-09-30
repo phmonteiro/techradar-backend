@@ -13,10 +13,10 @@ const router = express.Router();
 router.get('/count', getReferencesCountHandler);
 
 // GET all references for a specific technology
-router.get('/technology/:label', getReferencesByTechnologyHandler);
+router.get('/technology/:generatedId', getReferencesByTechnologyHandler);
 
 // GET all references for a specific trend
-router.get('/trend/:label', getReferencesByTrendHandler);
+router.get('/trend/:generatedId', getReferencesByTrendHandler);
 
 // GET a specific reference
 router.get('/:id', async (req, res, next) => {
@@ -29,14 +29,15 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// POST a new reference
+// PUT a new reference with label
 router.put('/label/:label', verifyToken, async (req, res, next) => {
   try {
     const referenceData = req.body;
-    console.log("Creating reference:", referenceData);
-    // This is a placeholder for actual controller logic
+    console.log("Creating reference with label:", referenceData);
+    // TODO: Implement actual controller logic with createReference
+    // const createdReference = await createReference(referenceData);
 
-    res.status(201).json({ message: 'Reference created successfully', data: createdReference });
+    res.status(201).json({ message: 'Reference created successfully' });
   } catch (error) {
     next(error);
   }
@@ -47,9 +48,10 @@ router.post('/', verifyToken, async (req, res, next) => {
   try {
     const referenceData = req.body;
     console.log("Creating reference:", referenceData);
-    // This is a placeholder for actual controller logic
+    // TODO: Implement actual controller logic with createReference
+    // const createdReference = await createReference(referenceData);
 
-    res.status(201).json({ message: 'Reference created successfully', data: createdReference });
+    res.status(201).json({ message: 'Reference created successfully' });
   } catch (error) {
     next(error);
   }
@@ -71,8 +73,8 @@ router.put('/:id', verifyToken, async (req, res, next) => {
 router.delete('/:id', verifyToken, async (req, res, next) => {
   try {
     const { id } = req.params;
-    // This is a placeholder for actual controller logic
-    response = deleteReferenceAdmin(id); // Assuming this function deletes the reference
+    // TODO: Implement actual controller logic
+    const response = await deleteReferenceAdmin(id);
     if (!response) {
       return res.status(404).json({ message: 'Reference not found' });
     }

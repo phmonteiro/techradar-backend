@@ -1,5 +1,5 @@
 import express from 'express';
-import { getTechnologyRadarConfig, getTrendRadarConfig } from '../controllers/radarconfig.controller.js';
+import { getTechnologyRadarConfig, getTrendRadarConfig } from '../controllers/radarConfig.controller.js';
 
 const router = express.Router();
 

@@ -9,23 +9,35 @@ export const getTechnologyRadarConfig = async (req, res) => {
     const configDate = dateResult.recordset[0].latest_date || new Date().toISOString().split('T')[0].replace(/-/g, '.');
     
     const entriesResult = await pool.request().query(`
-      SELECT quadrant, ring, name, label, link, active, moved
+      SELECT quadrant, ring, name, link, active, moved
       FROM Technology
       WHERE active = 1
-      ORDER BY quadrant, ring, label
+      ORDER BY quadrant, ring
     `);
     
+    console.log('Raw database results:', entriesResult.recordset.length, 'records');
+    console.log('Sample records:', entriesResult.recordset.slice(0, 3));
+    
     // Format the data to match the config.json structure
+    const filteredEntries = entriesResult.recordset
+      .filter(entry => 
+        entry.quadrant !== null && entry.quadrant !== undefined &&
+        entry.ring !== null && entry.ring !== undefined &&
+        entry.quadrant >= 0 && entry.quadrant <= 3 &&
+        entry.ring >= 0 && entry.ring <= 3
+      );
+    
+    console.log('Filtered entries:', filteredEntries.length, 'records');
+    
     const config = {
       date: configDate,
-      entries: entriesResult.recordset.map(entry => {
+      entries: filteredEntries.map(entry => {
         const formattedEntry = {
-          quadrant: entry.quadrant,
-          ring: entry.ring,
+          quadrant: parseInt(entry.quadrant, 10),
+          ring: parseInt(entry.ring, 10),
           name: entry.name,
-          label: entry.label,
-          active: entry.active,
-          moved: entry.moved
+          active: entry.active ? 1 : 0,
+          moved: entry.moved || 0
         };
         
         if (entry.link) {
@@ -36,6 +48,7 @@ export const getTechnologyRadarConfig = async (req, res) => {
       })
     };
 
+    console.log('Final config entries:', config.entries.length);
     return res.json(config);
   } catch (error) {
     console.error('Error fetching radar config:', error);
@@ -52,10 +65,10 @@ export const getTrendRadarConfig = async (req, res) => {
     const configDate = dateResult.recordset[0].latest_date || new Date().toISOString().split('T')[0].replace(/-/g, '.');
 
     const entriesResult = await pool.request().query(`
-      SELECT quadrant, ring, name, label, link, active
+      SELECT quadrant, ring, name, link, active
       FROM Trend
       WHERE active = 1
-      ORDER BY quadrant, ring, label
+      ORDER BY quadrant, ring
     `);
 
     // Format the data to match the config.json structure
@@ -66,7 +79,6 @@ export const getTrendRadarConfig = async (req, res) => {
           quadrant: entry.quadrant,
           ring: entry.ring,
           name: entry.name,
-          label: entry.label,
           active: entry.active
         };
 

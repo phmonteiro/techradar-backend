@@ -5,7 +5,7 @@ import { requireAdmin } from '../middleware/admin.middleware.js';
 import { 
   getDashboardStats, 
   getAllTechnologiesAdmin,
-  getTechnologyByLabelAdmin,
+  getTechnologyByGeneratedIDAdmin,
   createTechnologyAdmin,
   updateTechnologyAdmin,
   archiveTechnologyAdmin,
@@ -30,7 +30,7 @@ import {
 import { deleteTechnologyHandler } from '../controllers/technologies.controller.js';
 import { 
   getAllTrendsHandler,
-  getTrendByLabelHandler,
+  getTrendByGeneratedIDHandler,
   createTrendHandler,
   updateTrendHandler,
   deleteTrendHandler
@@ -48,21 +48,21 @@ router.get('/dashboard', getDashboardStats);
 
 // Technology management
 router.get('/technologies', getAllTechnologiesAdmin);
-router.get('/technologies/:label', getTechnologyByLabelAdmin);
+router.get('/technologies/:generatedId', getTechnologyByGeneratedIDAdmin);
 router.post('/technologies', createTechnologyAdmin);
-router.put('/technologies/:label', updateTechnologyAdmin);
-router.put('/technologies/:label/archive', archiveTechnologyAdmin);
-router.put('/technologies/:label/unarchive', unarchiveTechnologyAdmin);
-router.put('/technologies/:label/publish', publishTechnologyAdmin);
-router.delete('/technologies/:label', deleteTechnologyHandler);
-router.get('/technologies/edit/:label', editTechnologyAdmin);
+router.put('/technologies/:generatedId', updateTechnologyAdmin);
+router.put('/technologies/:generatedId/archive', archiveTechnologyAdmin);
+router.put('/technologies/:generatedId/unarchive', unarchiveTechnologyAdmin);
+router.put('/technologies/:generatedId/publish', publishTechnologyAdmin);
+router.delete('/technologies/:generatedId', deleteTechnologyHandler);
+router.get('/technologies/edit/:generatedId', editTechnologyAdmin);
 
 // Trend management
 router.get('/trends', getAllTrendsHandler);
-router.get('/trends/:label', getTrendByLabelHandler);
+router.get('/trends/:generatedId', getTrendByGeneratedIDHandler);
 router.post('/trends', createTrendHandler);
-router.put('/trends/:label', updateTrendHandler);
-router.delete('/trends/:label', deleteTrendHandler);
+router.put('/trends/:generatedId', updateTrendHandler);
+router.delete('/trends/:generatedId', deleteTrendHandler);
 
 // Comment management
 router.get('/comments', getAllCommentsAdmin);
@@ -74,7 +74,7 @@ router.delete('/comments/:id', deleteCommentAdmin);
 // Reference management
 router.get('/references', getAllReferencesAdmin);
 router.get('/references/:id', getReferenceByIdAdmin);
-router.post('/references/add/:type/:label', createReferenceAdmin);
+router.post('/references/add/:type/:generatedId', createReferenceAdmin);
 router.post('/references/add', createReferenceAdmin);   
 router.put('/references/:id', updateReferenceAdmin);
 router.delete('/references/:id', deleteReferenceAdmin);
@@ -82,7 +82,7 @@ router.delete('/references/:id', deleteReferenceAdmin);
 // User management (super admin only)
 router.get('/users', getAllAdminUsers);
 router.post('/users', createAdminUser);
-router.put('/users/:label', updateAdminUser);
+router.put('/users/:userId', updateAdminUser);
 
 // System info
 router.get('/system-info', getSystemInfo);

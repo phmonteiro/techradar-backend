@@ -5,7 +5,7 @@ import {
   createTechnology,
   updateTechnology,
   deleteTechnology,
-  getTechnologyByLabel
+  getTechnologyByGeneratedID
 } from '../models/technology.model.js';
 import {
   getAllComments,
@@ -173,14 +173,14 @@ export const getAllTechnologiesAdmin = async (req, res) => {
   }
 };
 
-export const getTechnologyByLabelAdmin = async (req, res) => {
+export const getTechnologyByGeneratedIDAdmin = async (req, res) => {
   try {
     const pool = await getDb();
-    const { label } = req.params;
+    const { generatedId } = req.params;
     
     const result = await pool.request()
-      .input('label', sql.NVarChar, label)
-      .query('SELECT * FROM Technology WHERE Label = @label');
+      .input('generatedId', sql.NVarChar, generatedId)
+      .query('SELECT * FROM Technology WHERE GeneratedID = @generatedId');
     
     if (result.recordset.length === 0) {
       return res.status(404).json({
@@ -193,10 +193,10 @@ export const getTechnologyByLabelAdmin = async (req, res) => {
     const [commentsResult, referencesResult] = await Promise.all([
       pool.request()
         .input('label', sql.NVarChar, label)
-        .query('SELECT * FROM Comments WHERE Label = @label ORDER BY CreatedAt DESC'),
+        .query('SELECT * FROM Comments WHERE GeneratedID = @label ORDER BY CreatedAt DESC'),
       pool.request()
         .input('label', sql.NVarChar, label)
-        .query('SELECT * FROM [References] WHERE label = @label ORDER BY CreatedAt DESC')
+        .query('SELECT * FROM [References] WHERE GeneratedID = @label ORDER BY CreatedAt DESC')
     ]);
     
     res.status(200).json({

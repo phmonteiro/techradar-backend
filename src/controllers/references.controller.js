@@ -6,19 +6,14 @@ import {
 
 export const getReferencesByTrendHandler = async (req, res) => {
   try {
-    const { label } = req.params;
-    const references = await getReferencesByTrend(label);
-    if (!references || references.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No references found for this trend'
-      });
-    }
-
+    const { generatedId } = req.params;
+    const references = await getReferencesByTrend(generatedId);
+    
+    // Return success even with empty array - this is not an error condition
     res.status(200).json({
       success: true,
-      count: references.length,
-      data: references
+      count: references ? references.length : 0,
+      data: references || []
     });
   } catch (error) {
     res.status(500).json({
@@ -31,19 +26,14 @@ export const getReferencesByTrendHandler = async (req, res) => {
 
 export const getReferencesByTechnologyHandler = async (req, res) => {
   try {
-
-    const { label } = req.params;
-    const references = await getReferencesByTechnology(label);
-    if (!references ) {
-      return res.status(404).json({
-        success: false,
-        message: 'No response returned from getReferencesByTechnology'
-      });
-    }
+    const { generatedId } = req.params;
+    const references = await getReferencesByTechnology(generatedId);
+    
+    // Return success even with empty array - this is not an error condition
     res.status(200).json({
-      success: references.length == 0 ? false : true,
-      count: references.length,
-      data: references
+      success: true,
+      count: references ? references.length : 0,
+      data: references || []
     });
   }
   catch (error) {
@@ -58,17 +48,12 @@ export const getReferencesByTechnologyHandler = async (req, res) => {
 export const getReferencesCountHandler = async (req, res) => {
   try {
     const count = await getReferencesCount();
-    if (count === 0) {
-      return res.status(404).json({
-        sucess: false,
-        message: 'No messages found'
-      })
-    }
     
-    res.status(220).json({
-      sucess: true,
+    // Return success even with count 0 - this is valid data
+    res.status(200).json({
+      success: true,
       message: "Count fetched successfully",
-      data: count
+      count: count || 0
     })
   } catch (err) {
     res.status(500).json({
