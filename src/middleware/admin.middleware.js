@@ -16,7 +16,7 @@ const requireAdmin = (req, res, next) => {
 
     // Check if user has Admin role - case sensitive comparison
     if (req.user.role !== 'Admin') {
-      console.warn(`Authorization failed: User ${req.user.username} has role ${req.user.role}, Admin required`);
+      console.warn(`Authorization failed: User ${req.user.userId} has role ${req.user.role}, Admin required`);
       return res.status(403).json({ 
         success: false,
         message: 'Forbidden - Admin privileges required' 

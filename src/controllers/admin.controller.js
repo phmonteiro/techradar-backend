@@ -222,7 +222,7 @@ export const createTechnologyAdmin = async (req, res) => {
     // Add audit trail - record who created
     const technologyData = {
       ...req.body,
-      CreatedBy: req.user.username,
+      CreatedBy: req.user.userId,
       CreatedAt: new Date(),
       EditedAt: new Date(),
       PublicationStatus: req.body.PublicationStatus || 'Draft'
@@ -470,7 +470,7 @@ export const createCommentAdmin = async (req, res) => {
   try {
     const comment = await createComment({
       ...req.body,
-      CreatedBy: req.user.username,
+      CreatedBy: req.user.userId,
       CreatedAt: new Date()
     });
     
@@ -497,7 +497,7 @@ export const approveCommentAdmin = async (req, res) => {
     const result = await pool.request()
       .input('id', sql.Int, id)
       .input('approvedAt', sql.DateTime, new Date())
-      .input('approvedBy', sql.NVarChar, req.user.username)
+      .input('approvedBy', sql.NVarChar, req.user.userId)
       .query(`
         UPDATE Comments 
         SET IsApproved = 'true', ApprovedAt = @approvedAt, ApprovedBy = @approvedBy
@@ -536,7 +536,7 @@ export const rejectCommentAdmin = async (req, res) => {
     const result = await pool.request()
       .input('id', sql.Int, id)
       .input('rejectedAt', sql.DateTime, new Date())
-      .input('rejectedBy', sql.NVarChar, req.user.username)
+      .input('rejectedBy', sql.NVarChar, req.user.userId)
       .input('rejectionReason', sql.NVarChar, reason || null)
       .query(`
         UPDATE Comments 
@@ -692,7 +692,7 @@ export const createReferenceAdmin = async (req, res) => {
   try {
     const reference = await createReference({
       ...req.body,
-      CreatedBy: req.user.username,
+      CreatedBy: req.user.userId,
       CreatedAt: new Date()
     });
     
@@ -717,7 +717,7 @@ export const updateReferenceAdmin = async (req, res) => {
     
     const reference = await updateReference(id, {
       ...req.body,
-      UpdatedBy: req.user.username,
+      UpdatedBy: req.user.userId,
       UpdatedAt: new Date()
     });
     

@@ -8,9 +8,9 @@ export const getAllUsers = async (req, res) => {
   try {
     const pool = await getDb();
     const result = await pool.request().query(`
-      SELECT UserId, Username, Email, FirstName, LastName, Role, IsActive, CreatedAt, UpdatedAt, LastLoginAt
+      SELECT UserId, UserID, Email, FirstName, LastName, Role, IsActive, CreatedAt, UpdatedAt, LastLoginAt
       FROM Users
-      ORDER BY Username
+      ORDER BY UserID
     `);
 
     res.status(200).json({
@@ -37,7 +37,7 @@ export const getUserById = async (req, res) => {
     const result = await pool.request()
       .input('id', sql.Int, id)
       .query(`
-        SELECT UserId, Username, Email, FirstName, LastName, Role, IsActive, CreatedAt, UpdatedAt, LastLoginAt
+        SELECT UserId, UserID, Email, FirstName, LastName, Role, IsActive, CreatedAt, UpdatedAt, LastLoginAt
         FROM Users
         WHERE UserId = @id
       `);
@@ -68,35 +68,35 @@ export const getUserById = async (req, res) => {
  */
 export const createUser = async (req, res) => {
   try {
-    const { username, email, password, firstName, lastName, role } = req.body;
+    const { userID, email, password, firstName, lastName, role } = req.body;
 
-    if (!username || !email || !password || !role) {
+    if (!userID || !email || !password || !role) {
       return res.status(400).json({
         success: false,
-        message: 'Username, email, password, and role are required',
+        message: 'UserID, email, password, and role are required',
       });
     }
 
     const pool = await getDb();
 
-    // Check if username or email already exists
+    // Check if userID or email already exists
     const existingUser = await pool.request()
-      .input('username', sql.NVarChar, username)
+      .input('userID', sql.NVarChar, userID)
       .input('email', sql.NVarChar, email)
       .query(`
-        SELECT UserId FROM Users WHERE Username = @username OR Email = @email
+        SELECT UserId FROM Users WHERE UserID = @userID OR Email = @email
       `);
 
     if (existingUser.recordset.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Username or email already exists',
+        message: 'UserID or email already exists',
       });
     }
 
     // Insert new user
     const result = await pool.request()
-      .input('username', sql.NVarChar, username)
+      .input('userID', sql.NVarChar, userID)
       .input('email', sql.NVarChar, email)
       .input('passwordHash', sql.NVarChar, password) // Hash the password in production
       .input('firstName', sql.NVarChar, firstName || null)
@@ -105,9 +105,9 @@ export const createUser = async (req, res) => {
       .input('isActive', sql.Bit, 1)
       .input('createdAt', sql.DateTime, new Date())
       .query(`
-        INSERT INTO Users (Username, Email, PasswordHash, FirstName, LastName, Role, IsActive, CreatedAt)
-        OUTPUT INSERTED.UserId, INSERTED.Username, INSERTED.Email, INSERTED.Role, INSERTED.CreatedAt
-        VALUES (@username, @email, @passwordHash, @firstName, @lastName, @role, @isActive, @createdAt)
+        INSERT INTO Users (UserID, Email, PasswordHash, FirstName, LastName, Role, IsActive, CreatedAt)
+        OUTPUT INSERTED.UserId, INSERTED.UserID, INSERTED.Email, INSERTED.Role, INSERTED.CreatedAt
+        VALUES (@userID, @email, @passwordHash, @firstName, @lastName, @role, @isActive, @createdAt)
       `);
 
     res.status(201).json({
@@ -165,7 +165,7 @@ export const updateUser = async (req, res) => {
           Role = COALESCE(@role, Role),
           IsActive = COALESCE(@isActive, IsActive),
           UpdatedAt = @updatedAt
-        OUTPUT INSERTED.UserId, INSERTED.Username, INSERTED.Email, INSERTED.Role, INSERTED.UpdatedAt
+        OUTPUT INSERTED.UserId, INSERTED.UserID, INSERTED.Email, INSERTED.Role, INSERTED.UpdatedAt
         WHERE UserId = @id
       `);
 

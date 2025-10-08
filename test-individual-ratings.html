@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Individual Ratings System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 15px; margin: 5px; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Individual User Ratings System Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Setup</h2>
+        <p>This page tests the new individual user ratings system.</p>
+        <p><strong>Backend URL:</strong> <span id="backendUrl">http://localhost:3000</span></p>
+        <p><strong>Test Item:</strong> Technology with GeneratedID "react"</p>
+        
+        <div>
+            <label for="authToken">Auth Token (required for user-specific operations):</label><br>
+            <input type="text" id="authToken" placeholder="Bearer token..." style="width: 400px;">
+            <button onclick="testAuth()">Test Auth</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>1. Test Average Ratings (Public)</h2>
+        <button onclick="testAverageRatings()">Get Average Ratings</button>
+        <div id="averageResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test User-Specific Ratings (Auth Required)</h2>
+        <button onclick="testUserRatings()">Get User Ratings</button>
+        <div id="userResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Rating Update (Auth Required)</h2>
+        <button onclick="testUpdateRatings()">Update User Ratings</button>
+        <div id="updateResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Logs</h2>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000';
+        const TEST_ITEM_TYPE = 'technology';
+        const TEST_GENERATED_ID = 'react';
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logs.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        async function testAuth() {
+            const token = document.getElementById('authToken').value;
+            if (!token) {
+                log('Please enter an auth token first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/ratings/user/${TEST_ITEM_TYPE}/${TEST_GENERATED_ID}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    log('✅ Authentication successful', 'success');
+                } else {
+                    log(`❌ Authentication failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Auth test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAverageRatings() {
+            try {
+                log('🔄 Testing average ratings endpoint...');
+                
+                const response = await fetch(`${BASE_URL}/api/ratings/average/${TEST_ITEM_TYPE}/${TEST_GENERATED_ID}`);
+                const data = await response.json();
+
+                const results = document.getElementById('averageResults');
+                
+                if (response.ok) {
+                    log('✅ Average ratings retrieved successfully', 'success');
+                    results.innerHTML = `
+                        <div class="success">✅ Success</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    log(`❌ Average ratings failed: ${response.status}`, 'error');
+                    results.innerHTML = `
+                        <div class="error">❌ Error ${response.status}</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                log(`❌ Average ratings error: ${error.message}`, 'error');
+                document.getElementById('averageResults').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testUserRatings() {
+            const token = document.getElementById('authToken').value;
+            if (!token) {
+                log('Please enter an auth token first', 'error');
+                return;
+            }
+
+            try {
+                log('🔄 Testing user ratings endpoint...');
+                
+                const response = await fetch(`${BASE_URL}/api/ratings/user/${TEST_ITEM_TYPE}/${TEST_GENERATED_ID}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                const results = document.getElementById('userResults');
+                
+                if (response.ok) {
+                    log('✅ User ratings retrieved successfully', 'success');
+                    results.innerHTML = `
+                        <div class="success">✅ Success</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    log(`❌ User ratings failed: ${response.status}`, 'error');
+                    results.innerHTML = `
+                        <div class="error">❌ Error ${response.status}</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                log(`❌ User ratings error: ${error.message}`, 'error');
+                document.getElementById('userResults').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testUpdateRatings() {
+            const token = document.getElementById('authToken').value;
+            if (!token) {
+                log('Please enter an auth token first', 'error');
+                return;
+            }
+
+            try {
+                log('🔄 Testing rating update endpoint...');
+                
+                const testRatings = [
+                    {
+                        ratingKey: "adoption",
+                        ratingValue: Math.floor(Math.random() * 5), // Random value 0-4
+                        ratingLabel: "Test Rating",
+                        maxValue: 4
+                    }
+                ];
+
+                const response = await fetch(`${BASE_URL}/api/ratings/${TEST_ITEM_TYPE}/${TEST_GENERATED_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ ratings: testRatings })
+                });
+
+                const data = await response.json();
+                const results = document.getElementById('updateResults');
+
+                if (response.ok) {
+                    log('✅ Rating update successful', 'success');
+                    results.innerHTML = `
+                        <div class="success">✅ Update Success</div>
+                        <p>Updated rating: ${JSON.stringify(testRatings[0])}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    log(`❌ Rating update failed: ${response.status}`, 'error');
+                    results.innerHTML = `
+                        <div class="error">❌ Update Error ${response.status}</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                log(`❌ Update error: ${error.message}`, 'error');
+                document.getElementById('updateResults').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Individual Ratings Test Page Loaded');
+            log('📝 Instructions: 1) Run database migration 2) Get auth token 3) Test endpoints');
+        });
+    </script>
+</body>
+</html>

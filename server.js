@@ -11,6 +11,7 @@ import { trendsRoutes } from './src/routes/trends.routes.js';
 import { commentsRoutes } from './src/routes/comments.routes.js';
 import { referencesRoutes } from './src/routes/references.routes.js';
 import { likesRoutes } from './src/routes/likes.routes.js';
+import { ratingsRoutes } from './src/routes/ratings.routes.js';
 import { errorHandler } from './src/middleware/error.middleware.js';
 import { getTechnologyRadarConfig } from './src/controllers/radarConfig.controller.js';
 import { getTrendRadarConfig } from './src/controllers/radarConfig.controller.js';
@@ -108,6 +109,7 @@ async function startServer() {
     app.use('/api/users', usersRoutes); 
     app.use('/api/trends', trendsRoutes);
     app.use('/api/likes', likesRoutes);
+    app.use('/api/ratings', ratingsRoutes);
     
     // Admin routes (all protected with middleware)
     app.use('/api/admin', adminRoutes);

@@ -32,18 +32,18 @@ export const login = async (req, res) => {
     
     // Query to find user with role information
     const result = await pool.request()
-      .input('username', sql.NVarChar, usernameCredential)
+      .input('userId', sql.NVarChar, usernameCredential)
       .query(`
         SELECT 
           id AS userId, 
-          username,
+          UserID,
           displayName, 
           password AS passwordHash, 
           role,
           lastLoginAt,
           isActive
         FROM Users 
-        WHERE username = @username
+        WHERE UserID = @userId
       `);
 
     const user = result.recordset[0];
@@ -84,7 +84,7 @@ export const login = async (req, res) => {
 
     if (!passwordValid) {
       // Azure best practice: Log failed login attempts but don't expose details in response
-      console.warn(`Failed login attempt for user: ${username}`);
+      console.warn(`Failed login attempt for user: ${usernameCredential}`);
       
       return res.status(401).json({ 
         success: false,
@@ -96,7 +96,7 @@ export const login = async (req, res) => {
     const now = Math.floor(Date.now() / 1000);
     const tokenPayload = { 
       sub: user.userId.toString(), // Subject claim (user identifier)
-      username: user.username,
+      userId: user.UserID,
       displayName: user.displayName,
       role: user.role || 'viewer', // Default to viewer if role is not set
       iat: now, // Issued at claim
@@ -129,8 +129,7 @@ export const login = async (req, res) => {
       success: true,
       message: 'Login successful',
       data: {
-        userId: user.userId,
-        username: user.username,
+        userId: user.UserID,
         role: user.role || 'viewer',
         token
       }
@@ -145,7 +144,7 @@ export const login = async (req, res) => {
     console.error('Login error:', {
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      username: req.body.username ? '***REDACTED***' : undefined
+      userCredential: req.body.usernameCredential ? '***REDACTED***' : undefined
     });
     
     res.status(500).json({ 
@@ -202,8 +201,7 @@ export const validateToken = (req, res) => {
     success: true,
     valid: true, 
     user: {
-      userId: req.user.sub,
-      username: req.user.username,
+      userId: req.user.userId,
       role: req.user.role
     }
   });
